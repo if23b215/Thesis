@@ -1,0 +1,25 @@
+{
+  "name": "db-benchmark",
+  "version": "0.0.1",
+  "description": "ycsb style benchmarking runner",
+  "homepage": "https://github.com/if23b215/Thesis#readme",
+  "bugs": {
+    "url": "https://github.com/if23b215/Thesis/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/if23b215/Thesis.git"
+  },
+  "license": "MIT",
+  "author": "Jan Lesjak",
+  "type": "commonjs",
+  "main": "src/presentation/runner.js",
+  "scripts": {
+    "test": "node --test test/L1/*.test.js",
+    "start": "node src/presentation/runner.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "12.6.2",
+    "redis": "5.11.0"
+  }
+}
