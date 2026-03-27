@@ -1,18 +1,16 @@
-'use strict';
+"use strict";
 
-// YCSB-Style Zipfian + ScrambledZipfian generator 
-
+// YCSB-Style Zipfian + ScrambledZipfian generator
 
 const U64_MASK = (1n << 64n) - 1n;
-
 
 function splitmix64(seed) {
   let x = seed & U64_MASK;
   return function nextU64() {
-    x = (x + 0x9E3779B97F4A7C15n) & U64_MASK;
+    x = (x + 0x9e3779b97f4a7c15n) & U64_MASK;
     let z = x;
-    z = (z ^ (z >> 30n)) * 0xBF58476D1CE4E5B9n & U64_MASK;
-    z = (z ^ (z >> 27n)) * 0x94D049BB133111EBn & U64_MASK;
+    z = ((z ^ (z >> 30n)) * 0xbf58476d1ce4e5b9n) & U64_MASK;
+    z = ((z ^ (z >> 27n)) * 0x94d049bb133111ebn) & U64_MASK;
     return (z ^ (z >> 31n)) & U64_MASK;
   };
 }
@@ -29,9 +27,9 @@ class XorShift128Plus {
     const s0 = this.s1;
     this.s0 = s0;
     s1 ^= (s1 << 23n) & U64_MASK;
-    s1 ^= (s1 >> 17n);
+    s1 ^= s1 >> 17n;
     s1 ^= s0;
-    s1 ^= (s0 >> 26n);
+    s1 ^= s0 >> 26n;
     this.s1 = s1 & U64_MASK;
     return (this.s1 + s0) & U64_MASK;
   }
@@ -42,7 +40,7 @@ class XorShift128Plus {
   }
 }
 
-const FNV_OFFSET_BASIS_64 = 0xCBF29CE484222325n;
+const FNV_OFFSET_BASIS_64 = 0xcbf29ce484222325n;
 const FNV_PRIME_64 = 1099511628211n;
 
 function fnvhash64(val) {
@@ -55,7 +53,6 @@ function fnvhash64(val) {
     hashval = hashval ^ octet;
     hashval = (hashval * FNV_PRIME_64) & U64_MASK;
   }
-
 
   if (hashval >= 0x8000000000000000n) {
     hashval = (1n << 64n) - hashval;
@@ -83,11 +80,17 @@ class ZipfianGenerator {
   // @param {number} zipfianconstant - Zipfian constant (default 0.99)
   // @param {XorShift128Plus} rng - Random number generator
   // @param {number|null} zetanPrecomputed - Precomputed zeta(n, theta), or null to compute
-  constructor(min, max, zipfianconstant = ZIPFIAN_CONSTANT, rng = new XorShift128Plus(1n), zetanPrecomputed = null) {
+  constructor(
+    min,
+    max,
+    zipfianconstant = ZIPFIAN_CONSTANT,
+    rng = new XorShift128Plus(1n),
+    zetanPrecomputed = null,
+  ) {
     if (!Number.isFinite(min) || !Number.isFinite(max)) {
-      throw new Error('min/max must be finite numbers');
+      throw new Error("min/max must be finite numbers");
     }
-    if (max < min) throw new Error('max must be >= min');
+    if (max < min) throw new Error("max must be >= min");
 
     this.base = min;
     this.min = min;
@@ -108,8 +111,9 @@ class ZipfianGenerator {
 
     this.countforzeta = this.items;
     this.alpha = 1.0 / (1.0 - this.theta);
-    this.eta = (1.0 - Math.pow(2.0 / this.items, 1.0 - this.theta)) /
-               (1.0 - (this.zeta2theta / this.zetan));
+    this.eta =
+      (1.0 - Math.pow(2.0 / this.items, 1.0 - this.theta)) /
+      (1.0 - this.zeta2theta / this.zetan);
 
     this._lastValue = this.nextLong(this.items);
   }
@@ -128,7 +132,11 @@ class ZipfianGenerator {
       return this.base + 1;
     }
 
-    let ret = this.base + Math.floor(itemcount * Math.pow(this.eta * u - this.eta + 1.0, this.alpha));
+    let ret =
+      this.base +
+      Math.floor(
+        itemcount * Math.pow(this.eta * u - this.eta + 1.0, this.alpha),
+      );
 
     // Guard
     if (ret < this.base) ret = this.base;
@@ -159,18 +167,34 @@ class ScrambledZipfianGenerator {
   // @param {number} max - Largest number
   // @param {number} zipfianconstant - Zipfian constant (default 0.99)
   // @param {XorShift128Plus} rng - Random number generator
-  constructor(min, max, zipfianconstant = ZIPFIAN_CONSTANT, rng = new XorShift128Plus(1n)) {
+  constructor(
+    min,
+    max,
+    zipfianconstant = ZIPFIAN_CONSTANT,
+    rng = new XorShift128Plus(1n),
+  ) {
     this.min = min;
     this.max = max;
     this.itemcount = max - min + 1;
 
     // Use precomputed ZETAN only if default zipfian constant
     if (zipfianconstant === ZIPFIAN_CONSTANT) {
-      this.gen = new ZipfianGenerator(0, ITEM_COUNT - 1, zipfianconstant, rng, ZETAN);
-    } 
-    else {
+      this.gen = new ZipfianGenerator(
+        0,
+        ITEM_COUNT - 1,
+        zipfianconstant,
+        rng,
+        ZETAN,
+      );
+    } else {
       // Non-default constant requires computing zeta
-      this.gen = new ZipfianGenerator(0, ITEM_COUNT - 1, zipfianconstant, rng, null);
+      this.gen = new ZipfianGenerator(
+        0,
+        ITEM_COUNT - 1,
+        zipfianconstant,
+        rng,
+        null,
+      );
     }
   }
 

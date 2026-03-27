@@ -1,15 +1,15 @@
-const { describe, it } = require('node:test');
-const assert = require('node:assert/strict');
+const { describe, it } = require("node:test");
+const assert = require("node:assert/strict");
 
 const {
   createValueGenerator,
   createRecordGenerator,
-} = require('../../src/domain/valueGenerator');
+} = require("../../src/domain/valueGenerator");
 
-describe('ValueGenerator', () => {
-  it('deterministic value output for identical seeds and parameters', () => {
+describe("L1: ValueGenerator", () => {
+  it("deterministic value output for identical seeds and parameters", () => {
     const size = 100;
-    const seed = 42n;
+    const seed = 40n;
 
     const generator1 = createValueGenerator(size, seed);
     const generator2 = createValueGenerator(size, seed);
@@ -20,10 +20,10 @@ describe('ValueGenerator', () => {
     assert.deepStrictEqual(value1, value2);
   });
 
-  it('generated records equal fieldCount x fieldLength bytes', () => {
+  it("generated records equal fieldCount x fieldLength bytes", () => {
     const fieldCount = 10;
     const fieldLength = 100;
-    const seed = 11n;
+    const seed = 30n;
 
     const generator = createRecordGenerator({ fieldCount, fieldLength, seed });
     const record = generator();

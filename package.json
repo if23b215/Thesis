@@ -1,6 +1,6 @@
 {
   "name": "db-benchmark",
-  "version": "0.0.1",
+  "version": "0.4.0",
   "description": "ycsb style benchmarking runner",
   "homepage": "https://github.com/if23b215/Thesis#readme",
   "bugs": {
@@ -15,11 +15,16 @@
   "type": "commonjs",
   "main": "src/presentation/runner.js",
   "scripts": {
-    "test": "node --test test/L1/*.test.js",
-    "start": "node src/presentation/runner.js"
+    "test": "node --test test/L1/*.test.js test/L2/*.test.js",
+    "start": "node src/presentation/runner.js",
+    "log": "mkdir -p logs && node --trace-gc --trace-gc-ignore-scavenger src/presentation/runner.js > logs/gc-trace.log 2>&1",
+    "format": "prettier --write ."
   },
   "dependencies": {
     "better-sqlite3": "12.6.2",
     "redis": "5.11.0"
+  },
+  "devDependencies": {
+    "prettier": "^3.8.1"
   }
 }

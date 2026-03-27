@@ -1,6 +1,6 @@
-'use strict';
+"use strict";
 
-const { XorShift128Plus } = require('./zipfianGenerator');
+const { XorShift128Plus } = require("./zipfianGenerator");
 
 // YCSB-style random bytes value generator
 function createValueGenerator(size = 100, seed = 1n) {
@@ -22,12 +22,16 @@ function createValueGenerator(size = 100, seed = 1n) {
   };
 }
 
-function createRecordGenerator({ fieldCount = 10, fieldLength = 100, seed = 11n } = {}) {
+function createRecordGenerator({
+  fieldCount = 10,
+  fieldLength = 100,
+  seed = 11n,
+} = {}) {
   if (!Number.isInteger(fieldCount) || fieldCount <= 0) {
-    throw new Error('fieldCount must be a positive integer');
+    throw new Error("fieldCount must be a positive integer");
   }
   if (!Number.isInteger(fieldLength) || fieldLength <= 0) {
-    throw new Error('fieldLength must be a positive integer');
+    throw new Error("fieldLength must be a positive integer");
   }
 
   const nextFieldValue = createValueGenerator(fieldLength, seed);
@@ -43,13 +47,16 @@ function createRecordGenerator({ fieldCount = 10, fieldLength = 100, seed = 11n 
 
 function createFieldPicker({ fieldCount = 10, seed = 21n } = {}) {
   if (!Number.isInteger(fieldCount) || fieldCount <= 0) {
-    throw new Error('fieldCount must be a positive integer');
+    throw new Error("fieldCount must be a positive integer");
   }
   const rng = new XorShift128Plus(BigInt(seed));
   return () => Math.floor(rng.nextDouble() * fieldCount);
 }
 
-function updateRecordFields(record, { writeAllFields, pickField, createFieldValue, fieldLength }) {
+function updateRecordFields(
+  record,
+  { writeAllFields, pickField, createFieldValue, fieldLength },
+) {
   if (!Buffer.isBuffer(record)) return record;
   const nextRecord = Buffer.from(record);
   const fieldCount = Math.floor(nextRecord.length / fieldLength);
@@ -79,5 +86,5 @@ module.exports = {
   createRecordGenerator,
   createFieldPicker,
   updateRecordFields,
-  projectRead
+  projectRead,
 };

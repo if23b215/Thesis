@@ -1,15 +1,24 @@
-const { describe, it } = require('node:test');
-const assert = require('node:assert/strict');
+const { describe, it } = require("node:test");
+const assert = require("node:assert/strict");
 
-const { createWorkload, getWorkloadMix } = require('../../src/domain/workloadGenerator');
+const {
+  createWorkload,
+  getWorkloadMix,
+} = require("../../src/domain/workloadGenerator");
 
-describe('WorkloadGenerator', () => {
-  ['A', 'B', 'C'].forEach(workloadName => {
+describe("L1: WorkloadGenerator", () => {
+  ["A", "B", "C"].forEach((workloadName) => {
     it(`workload ${workloadName} proportions within 1%`, () => {
-      const generator = createWorkload({ workload: workloadName, recordCount: 1000, seed: 42n });
+      const generator = createWorkload({
+        workload: workloadName,
+        recordCount: 1000,
+        seed: 20n,
+      });
       const operations = Array.from({ length: 100000 }, () => generator());
-      const reads = operations.filter(op => op.operation === 'READ').length;
-      const updates = operations.filter(op => op.operation === 'UPDATE').length;
+      const reads = operations.filter((op) => op.operation === "READ").length;
+      const updates = operations.filter(
+        (op) => op.operation === "UPDATE",
+      ).length;
       const readProp = reads / operations.length;
       const updateProp = updates / operations.length;
       const target = getWorkloadMix(workloadName);
