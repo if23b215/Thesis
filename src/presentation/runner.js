@@ -1,6 +1,5 @@
 "use strict";
 
-const fs = require("node:fs/promises");
 const { runAllWorkloads } = require("../application/benchmark");
 const {
   config,
@@ -19,6 +18,11 @@ const {
   calculatePercentiles,
   calculateThroughput,
 } = require("../domain/metrics");
+const { exportResultsJson } = require("./logger.js");
+
+// hard parse the argument given as the store to use to bench
+// npm start minStore -> config.store = minStore
+if (process.argv[2]) config.store = process.argv[2];
 
 async function main() {
   const deps = {
@@ -39,14 +43,3 @@ async function main() {
 }
 
 main().catch(console.error);
-
-async function exportResultsJson(results) {
-  const outputPath = "logs/benchmark-results.json";
-  await fs.mkdir("logs", { recursive: true });
-  await fs.writeFile(
-    outputPath,
-    JSON.stringify(results, null, 2) + "\n",
-    "utf8",
-  );
-  console.log(`\nResults exported to JSON: ${outputPath}`);
-}

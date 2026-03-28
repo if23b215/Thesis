@@ -134,7 +134,7 @@ describe("L3: Benchmark Integration", () => {
     }
   });
 
-  it("Warmup phase: measured latencies exclude warmup operations; measured operation count equals operationCount", async () => {
+  it("Warmup phase: measured latencies exclude warmup operations / measured operation count equals operationCount", async () => {
     const operationCount = 300;
     const warmupCount = 2_000;
 

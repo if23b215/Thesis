@@ -11,7 +11,7 @@ const backends = Array.from(storeFactories.entries()).map(
 );
 
 describe("L2: StoreContract", () => {
-  it("common interface: each store adapter correctly implements get(key) and set(key, value) (FR1.4)", async () => {
+  it("common interface: each store adapter correctly implements get(key) and set(key, value)", async () => {
     for (const backend of backends) {
       const store = await Promise.resolve(backend.factory());
 
@@ -34,7 +34,7 @@ describe("L2: StoreContract", () => {
     }
   });
 
-  it("round-trip integrity: value written with set is returned identically by get (FR1.1-FR1.3)", async () => {
+  it("round-trip integrity: value written with set is returned identically by get", async () => {
     const value = "L2-round-trip-value";
 
     for (const backend of backends) {

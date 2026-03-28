@@ -11,14 +11,14 @@ describe("L3: GC Integration", () => {
     "GC logging: output contains both YCSB and GC lines",
     { timeout: 40_000 },
     () => {
-      const projectRoot = path.resolve(__dirname, "../..");
-      const logPath = path.join(projectRoot, "logs", "gc-trace.log");
+      const root = path.resolve(__dirname, "../..");
+      const logPath = path.join(root, "logs", "gc-trace.log");
       // limit max heap to make it fail
       const nodeOptions =
-        `${process.env.NODE_OPTIONS ? `${process.env.NODE_OPTIONS} ` : ""}--max-old-space-size=8`.trim();
+        `${process.env.NODE_OPTIONS ? `${process.env.NODE_OPTIONS} ` : ""}--max-old-space-size=16`.trim();
 
       spawnSync("npm", ["run", "log"], {
-        cwd: projectRoot,
+        cwd: root,
         encoding: "utf8",
         maxBuffer: 16 * 1024 * 1024,
         env: { ...process.env, NODE_OPTIONS: nodeOptions },

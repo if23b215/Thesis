@@ -5,11 +5,11 @@
 const { getStoreFactory } = require("../infrastructure/stores/storeFactory");
 
 const config = {
-  recordCounts: [1_000, 10_000, 100_000],
+  recordCounts: [100_000],
   operationCount: 100_000,
   warmupCount: 10_000,
   workloads: ["A", "B", "C"],
-  store: "map",
+  store: "map", // map minStore redisStore sqliteStore
   fieldCount: 10,
   fieldLength: 100,
   requestDistribution: "zipfian",

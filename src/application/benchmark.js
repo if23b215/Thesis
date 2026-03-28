@@ -7,6 +7,7 @@ async function loadData({ store, recordCount, recordGenerator, logger }) {
   logger.log(`Loading ${recordCount} records...`);
 
   for (let i = 0; i < recordCount; i++) {
+    if (i % 100000 === 0) logger.log(`\n${i}/${recordCount} records loaded`);
     if (isAsyncStore) {
       await store.set(`key${i}`, recordGenerator());
     } else {
