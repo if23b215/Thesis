@@ -7,8 +7,37 @@ const DEFAULT_HOST = process.env.BENCH_REDIS_HOST || "127.0.0.1";
 const DEFAULT_PORT = Number(process.env.BENCH_REDIS_PORT || 6379);
 const DEFAULT_DB = Number(process.env.BENCH_REDIS_DB || 15);
 const SCAN_BATCH_SIZE = 2048;
+const SCALAR_FIELD = "__bench_scalar__";
 
 const NOOP = () => {};
+
+function isRecordValue(value) {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function toRedisHash(value) {
+  if (isRecordValue(value)) {
+    return Object.fromEntries(
+      Object.entries(value).map(([field, fieldValue]) => [
+        field,
+        String(fieldValue),
+      ]),
+    );
+  }
+
+  return { [SCALAR_FIELD]: String(value) };
+}
+
+function fromRedisHash(hash) {
+  const fields = Object.keys(hash);
+
+  if (fields.length === 0) return undefined;
+  if (fields.length === 1 && fields[0] === SCALAR_FIELD) {
+    return hash[SCALAR_FIELD];
+  }
+
+  return hash;
+}
 
 async function countKeys(client, pattern) {
   let cursor = "0";
@@ -74,12 +103,13 @@ async function createRedisStore({
     isAsync: true,
 
     async get(key) {
-      const value = await client.get(fullKey(key));
-      return value === null ? undefined : value;
+      return fromRedisHash(await client.hGetAll(fullKey(key)));
     },
 
     async set(key, value) {
-      await client.set(fullKey(key), value);
+      const redisKey = fullKey(key);
+      await client.del(redisKey);
+      await client.hSet(redisKey, toRedisHash(value));
       return this;
     },
 

@@ -5,7 +5,7 @@ set -euo pipefail
 # Sample every 10 ms
 SAMPLE_INTERVAL_SEC="0.01"
 STORE_NAME="${1:-}"
-NODE_EXECUTION_COMMAND=(node --trace-gc --trace-gc-ignore-scavenger src/presentation/runner.js)
+NODE_EXECUTION_COMMAND=(node --trace-gc --trace-gc-ignore-scavenger --max-old-space-size=14192 src/presentation/runner.js)
 
 # Check if Redis
 is_redis_store() {

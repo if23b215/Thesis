@@ -16,9 +16,9 @@
   "main": "src/presentation/runner.js",
   "scripts": {
     "test": "node --test test/L1/*.test.js test/L2/*.test.js",
-    "start": "node src/presentation/runner.js",
+    "start": "node --max-old-space-size=14192 src/presentation/runner.js",
     "memory": "mkdir -p logs && bash src/infrastructure/memoryMonitor.sh > logs/memory-gc-trace.log 2>&1",
-    "log": "mkdir -p logs && node --trace-gc --trace-gc-ignore-scavenger src/presentation/runner.js > logs/gc-trace.log 2>&1",
+    "log": "mkdir -p logs && node --trace-gc --trace-gc-ignore-scavenger --max-old-space-size=14192 src/presentation/runner.js > logs/gc-trace.log 2>&1",
     "format": "prettier --write ."
   },
   "dependencies": {

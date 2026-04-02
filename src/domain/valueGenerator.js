@@ -2,23 +2,29 @@
 
 const { XorShift128Plus } = require("./zipfianGenerator");
 
-// YCSB-style random bytes value generator
+const ASCII_START = 32;
+const ASCII_RANGE = 95;
+
+function getFieldName(index) {
+  return String(index);
+}
+
+function isRecord(record) {
+  return record !== null && typeof record === "object" && !Array.isArray(record);
+}
+
+// YCSB-style fixed-width printable ASCII value generator
 function createValueGenerator(size = 100, seed = 1n) {
   const rng = new XorShift128Plus(BigInt(seed));
 
   return () => {
-    const buf = Buffer.allocUnsafe(size);
-    let i = 0;
+    const value = Buffer.allocUnsafe(size);
 
-    while (i < size) {
-      let x = rng.nextU64();
-      for (let j = 0; j < 8 && i < size; j++) {
-        buf[i++] = Number(x & 0xffn);
-        x >>= 8n;
-      }
+    for (let i = 0; i < size; i++) {
+      value[i] = ASCII_START + Number(rng.nextU64() % BigInt(ASCII_RANGE));
     }
 
-    return buf;
+    return value.toString("latin1");
   };
 }
 
@@ -37,10 +43,12 @@ function createRecordGenerator({
   const nextFieldValue = createValueGenerator(fieldLength, seed);
 
   return () => {
-    const record = Buffer.allocUnsafe(fieldCount * fieldLength);
+    const record = {};
+
     for (let i = 0; i < fieldCount; i++) {
-      nextFieldValue().copy(record, i * fieldLength);
+      record[getFieldName(i)] = nextFieldValue();
     }
+
     return record;
   };
 }
@@ -55,30 +63,32 @@ function createFieldPicker({ fieldCount = 10, seed = 21n } = {}) {
 
 function updateRecordFields(
   record,
-  { writeAllFields, pickField, createFieldValue, fieldLength },
+  { writeAllFields, pickField, createFieldValue },
 ) {
-  if (!Buffer.isBuffer(record)) return record;
-  const nextRecord = Buffer.from(record);
-  const fieldCount = Math.floor(nextRecord.length / fieldLength);
+  if (!isRecord(record)) return record;
+
+  const nextRecord = { ...record };
+  const fieldNames = Object.keys(nextRecord);
+
+  if (fieldNames.length === 0) return nextRecord;
+
   if (writeAllFields) {
-    for (let i = 0; i < fieldCount; i++) {
-      createFieldValue().copy(nextRecord, i * fieldLength);
+    for (const fieldName of fieldNames) {
+      nextRecord[fieldName] = createFieldValue();
     }
+
     return nextRecord;
   }
 
-  const fieldIndex = pickField();
-  createFieldValue().copy(nextRecord, fieldIndex * fieldLength);
+  nextRecord[getFieldName(pickField())] = createFieldValue();
   return nextRecord;
 }
 
-function projectRead(record, { readAllFields, pickField, fieldLength }) {
-  if (!Buffer.isBuffer(record)) return record;
+function projectRead(record, { readAllFields, pickField }) {
+  if (!isRecord(record)) return record;
   if (readAllFields) return record;
-  const fieldIndex = pickField();
-  const start = fieldIndex * fieldLength;
-  const end = start + fieldLength;
-  return record.subarray(start, end);
+
+  return record[getFieldName(pickField())];
 }
 
 module.exports = {
