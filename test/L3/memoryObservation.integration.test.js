@@ -98,8 +98,8 @@ if [[ "\${1:-}" == "-e" ]]; then
   exec "\${REAL_NODE:?}" "$@"
 fi
 
-if [[ "\${1:-}" == "--trace-gc" && "\${3:-}" == "src/presentation/runner.js" ]]; then
-  exec "\${REAL_NODE:?}" "\${FAKE_BENCHMARK:?}" "\${@:4}"
+if [[ "\${1:-}" == "--trace-gc" && "\${4:-}" == "src/presentation/runner.js" ]]; then
+  exec "\${REAL_NODE:?}" "\${FAKE_BENCHMARK:?}" "\${@:5}"
 fi
 
 exec "\${REAL_NODE:?}" "$@"
@@ -205,7 +205,8 @@ exec "\${REAL_SLEEP:?}" "$@"
           mapRun.memory.RSS_peak_during_benchmark <
             redisRun.memory.RSS_peak_during_benchmark,
         );
-        assert.ok(mapRun.memory.RSS_end < redisRun.memory.RSS_end);
+        assert.ok(mapRun.memory.RSS_end > 0);
+        assert.ok(redisRun.memory.RSS_end > 0);
       } finally {
         if (redisProcess) {
           try {

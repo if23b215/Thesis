@@ -13,7 +13,6 @@ const {
   createRecordGenerator,
   createFieldPicker,
   updateRecordFields,
-  projectRead,
 } = require("../../src/domain/valueGenerator");
 const {
   calculatePercentiles,
@@ -30,7 +29,6 @@ const benchmarkDeps = {
   createRecordGenerator,
   createFieldPicker,
   updateRecordFields,
-  projectRead,
   calculatePercentiles,
   calculateThroughput,
 };

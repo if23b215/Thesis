@@ -21,9 +21,10 @@ function registerWorkload(name, { readProp, updateProp } = {}) {
 function getWorkloadMix(name) {
   return WORKLOADS[name];
 }
-
+// Gets random int between 0-(recordCount-1)
 function createKeySelector({ recordCount, requestDistribution, rng, theta }) {
   if (requestDistribution === "uniform") {
+    // e.g.(0.5959568351446393 * 100000) = 59595
     return () => Math.floor(rng.nextDouble() * recordCount);
   }
   if (requestDistribution === "zipfian") {
@@ -36,7 +37,7 @@ function createKeySelector({ recordCount, requestDistribution, rng, theta }) {
     return () => keyGen.nextValue();
   }
   throw new Error(
-    `Unsupported requestDistribution "${requestDistribution}". Expected "zipfian" or "uniform".`,
+    `Unsupported requestDistribution "${requestDistribution}".`,
   );
 }
 
@@ -70,8 +71,9 @@ function createWorkload({
   });
 
   return () => {
-    const key = `key${selectKey()}`;
+    const key = `user${selectKey()}`;
     const isRead = rng.nextDouble() < mix.readProp;
+    // {user12345, READ}
     return { key, operation: isRead ? "READ" : "UPDATE" };
   };
 }

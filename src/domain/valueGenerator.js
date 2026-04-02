@@ -2,32 +2,45 @@
 
 const { XorShift128Plus } = require("./zipfianGenerator");
 
+// Ascii characters 32 - 126 are printable, this avoids control characters
 const ASCII_START = 32;
 const ASCII_RANGE = 95;
 
 function getFieldName(index) {
-  return String(index);
+  return "field" + index;
 }
 
 function isRecord(record) {
   return record !== null && typeof record === "object" && !Array.isArray(record);
 }
 
-// YCSB-style fixed-width printable ASCII value generator
+// YCSB-style ASCII value generator
+// in:  size (bytes), deterministic seed
+// out: function that returns a fixed-width string each call
 function createValueGenerator(size = 100, seed = 1n) {
   const rng = new XorShift128Plus(BigInt(seed));
 
   return () => {
+    // temporary byte array, used only to assemble the value, dies after
+    // small enough (< 8 KB) to stay in heap memory
+    // e.g. [0,0,0]
     const value = Buffer.allocUnsafe(size);
 
+    // e.g. [34,45,56]
     for (let i = 0; i < size; i++) {
       value[i] = ASCII_START + Number(rng.nextU64() % BigInt(ASCII_RANGE));
     }
 
+    // parses bytes to regular string
+    // the byte array dies after
+    // e.g. '"-8'
     return value.toString("latin1");
   };
 }
 
+// in:  fieldCount, fieldLength (bytes per field), seed
+// out: function that returns { field0: str, field1: str, … } records
+//        total record size = fieldCount × fieldLength bytes
 function createRecordGenerator({
   fieldCount = 10,
   fieldLength = 100,
@@ -53,6 +66,8 @@ function createRecordGenerator({
   };
 }
 
+// in:  fieldCount, seed
+// out: function that returns a random field index [0, fieldCount)
 function createFieldPicker({ fieldCount = 10, seed = 21n } = {}) {
   if (!Number.isInteger(fieldCount) || fieldCount <= 0) {
     throw new Error("fieldCount must be a positive integer");
@@ -61,34 +76,15 @@ function createFieldPicker({ fieldCount = 10, seed = 21n } = {}) {
   return () => Math.floor(rng.nextDouble() * fieldCount);
 }
 
-function updateRecordFields(
-  record,
-  { writeAllFields, pickField, createFieldValue },
-) {
+// in:  existing record, field picker, value factory
+// out: new record with one updated field — original is not modified
+function updateRecordFields(record, { pickField, createFieldValue }) {
   if (!isRecord(record)) return record;
 
   const nextRecord = { ...record };
-  const fieldNames = Object.keys(nextRecord);
-
-  if (fieldNames.length === 0) return nextRecord;
-
-  if (writeAllFields) {
-    for (const fieldName of fieldNames) {
-      nextRecord[fieldName] = createFieldValue();
-    }
-
-    return nextRecord;
-  }
-
+  // existing record[0-9], random index, random new Value for one Field
   nextRecord[getFieldName(pickField())] = createFieldValue();
   return nextRecord;
-}
-
-function projectRead(record, { readAllFields, pickField }) {
-  if (!isRecord(record)) return record;
-  if (readAllFields) return record;
-
-  return record[getFieldName(pickField())];
 }
 
 module.exports = {
@@ -96,5 +92,4 @@ module.exports = {
   createRecordGenerator,
   createFieldPicker,
   updateRecordFields,
-  projectRead,
 };

@@ -108,7 +108,6 @@ async function createRedisStore({
 
     async set(key, value) {
       const redisKey = fullKey(key);
-      await client.del(redisKey);
       await client.hSet(redisKey, toRedisHash(value));
       return this;
     },

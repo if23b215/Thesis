@@ -13,8 +13,6 @@ const config = {
   fieldCount: 10,
   fieldLength: 100,
   requestDistribution: "zipfian",
-  readAllFields: true,
-  writeAllFields: false,
 };
 
 function getRunConfigs() {
@@ -27,8 +25,6 @@ function getRunConfigs() {
       fieldCount: config.fieldCount,
       fieldLength: config.fieldLength,
       requestDistribution: config.requestDistribution,
-      readAllFields: config.readAllFields,
-      writeAllFields: config.writeAllFields,
     })),
   );
 }

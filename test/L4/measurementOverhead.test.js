@@ -9,7 +9,6 @@ const {
   createRecordGenerator,
   createFieldPicker,
   updateRecordFields,
-  projectRead,
 } = require("../../src/domain/valueGenerator");
 const {
   getStoreFactory,
@@ -29,9 +28,6 @@ describe("L4: Measurement overhead", () => {
         const fieldCount = 10;
         const fieldLength = 100;
         const requestDistribution = "zipfian";
-        const readAllFields = true;
-        const writeAllFields = false;
-
         const warmupOps = createWorkload({
           workload,
           recordCount,
@@ -49,16 +45,11 @@ describe("L4: Measurement overhead", () => {
           fieldLength,
           seed: 3n,
         });
-        const createRecordValue = createRecordGenerator({
-          fieldCount,
-          fieldLength,
-          seed: 4n,
-        });
         const createFieldValue = createValueGenerator(fieldLength, 5n);
         const pickField = createFieldPicker({ fieldCount, seed: 6n });
 
         for (let i = 0; i < recordCount; i++) {
-          store.set(`key${i}`, loadRecords());
+          store.set(`user${i}`, loadRecords());
         }
 
         await runOperations({
@@ -67,13 +58,8 @@ describe("L4: Measurement overhead", () => {
           measure: false,
           operationGenerator: warmupOps,
           createFieldValue,
-          createRecordValue,
           pickField,
-          fieldLength,
-          readAllFields,
-          writeAllFields,
           updateRecordFields,
-          projectRead,
         });
 
         return await runOperations({
@@ -82,13 +68,8 @@ describe("L4: Measurement overhead", () => {
           measure,
           operationGenerator: benchOps,
           createFieldValue,
-          createRecordValue,
           pickField,
-          fieldLength,
-          readAllFields,
-          writeAllFields,
           updateRecordFields,
-          projectRead,
         });
       } finally {
         await store.close();

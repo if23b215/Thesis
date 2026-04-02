@@ -12,7 +12,6 @@ const {
   createRecordGenerator,
   createFieldPicker,
   updateRecordFields,
-  projectRead,
 } = require("../domain/valueGenerator");
 const {
   calculatePercentiles,
@@ -32,7 +31,6 @@ async function main() {
     createRecordGenerator,
     createFieldPicker,
     updateRecordFields,
-    projectRead,
     calculatePercentiles,
     calculateThroughput,
     storeName: config.store,

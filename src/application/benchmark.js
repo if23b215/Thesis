@@ -9,9 +9,9 @@ async function loadData({ store, recordCount, recordGenerator, logger }) {
   for (let i = 0; i < recordCount; i++) {
     if (i % 100000 === 0) logger.log(`\n${i}/${recordCount} records loaded`);
     if (isAsyncStore) {
-      await store.set(`key${i}`, recordGenerator());
+      await store.set(`user${i}`, recordGenerator());
     } else {
-      store.set(`key${i}`, recordGenerator());
+      store.set(`user${i}`, recordGenerator());
     }
   }
 
@@ -24,16 +24,12 @@ async function runOperations({
   operationCount,
   operationGenerator,
   createFieldValue,
-  createRecordValue,
   pickField,
-  fieldLength,
-  readAllFields,
-  writeAllFields,
   updateRecordFields,
-  projectRead,
   measure,
 }) {
   const isAsyncStore = store.isAsync === true;
+  // Init array with operationCount entries on measure true
   const allLatencies = measure ? new BigInt64Array(operationCount) : null;
   const readLatencies = [];
   const updateLatencies = [];
@@ -56,34 +52,24 @@ async function runOperations({
       const start = process.hrtime.bigint();
       if (isAsyncStore) {
         if (isRead) {
-          const record = await store.get(key);
-          projectRead(record, { readAllFields, pickField, fieldLength });
+          await store.get(key);
         } else {
           const current = await store.get(key);
-          const nextRecord = current
-            ? updateRecordFields(current, {
-                writeAllFields,
-                pickField,
-                createFieldValue,
-                fieldLength,
-              })
-            : createRecordValue();
+          const nextRecord = updateRecordFields(current, {
+            pickField,
+            createFieldValue,
+          });
           await store.set(key, nextRecord);
         }
       } else {
         if (isRead) {
-          const record = store.get(key);
-          projectRead(record, { readAllFields, pickField, fieldLength });
+          store.get(key);
         } else {
           const current = store.get(key);
-          const nextRecord = current
-            ? updateRecordFields(current, {
-                writeAllFields,
-                pickField,
-                createFieldValue,
-                fieldLength,
-              })
-            : createRecordValue();
+          const nextRecord = updateRecordFields(current, {
+            pickField,
+            createFieldValue,
+          });
           store.set(key, nextRecord);
         }
       }
@@ -97,33 +83,23 @@ async function runOperations({
       }
     } else if (isAsyncStore) {
       if (isRead) {
-        const record = await store.get(key);
-        projectRead(record, { readAllFields, pickField, fieldLength });
+        await store.get(key);
       } else {
         const current = await store.get(key);
-        const nextRecord = current
-          ? updateRecordFields(current, {
-              writeAllFields,
-              pickField,
-              createFieldValue,
-              fieldLength,
-            })
-          : createRecordValue();
+        const nextRecord = updateRecordFields(current, {
+          pickField,
+          createFieldValue,
+        });
         await store.set(key, nextRecord);
       }
     } else if (isRead) {
-      const record = store.get(key);
-      projectRead(record, { readAllFields, pickField, fieldLength });
+      store.get(key);
     } else {
       const current = store.get(key);
-      const nextRecord = current
-        ? updateRecordFields(current, {
-            writeAllFields,
-            pickField,
-            createFieldValue,
-            fieldLength,
-          })
-        : createRecordValue();
+      const nextRecord = updateRecordFields(current, {
+        pickField,
+        createFieldValue,
+      });
       store.set(key, nextRecord);
     }
   }
@@ -150,8 +126,6 @@ async function runBenchmark(config, deps) {
     fieldCount = 10,
     fieldLength = 100,
     requestDistribution = "zipfian",
-    readAllFields = true,
-    writeAllFields = false,
   } = config;
 
   const {
@@ -161,7 +135,6 @@ async function runBenchmark(config, deps) {
     createRecordGenerator,
     createFieldPicker,
     updateRecordFields,
-    projectRead,
     calculatePercentiles,
     calculateThroughput,
     storeName = "unknown",
@@ -176,7 +149,7 @@ async function runBenchmark(config, deps) {
   try {
     logger.log(`Fields: ${fieldCount} x ${fieldLength} bytes`);
     logger.log(
-      `Distribution: ${requestDistribution}, readAllFields=${readAllFields}, writeAllFields=${writeAllFields}`,
+      `Distribution: ${requestDistribution}`,
     );
 
     const warmupOps = createWorkload({
@@ -197,11 +170,6 @@ async function runBenchmark(config, deps) {
       fieldLength,
       seed: 3n,
     });
-    const createRecordValue = createRecordGenerator({
-      fieldCount,
-      fieldLength,
-      seed: 4n,
-    });
     const createFieldValue = createValueGenerator(fieldLength, 5n);
     const pickField = createFieldPicker({ fieldCount, seed: 6n });
 
@@ -221,13 +189,8 @@ async function runBenchmark(config, deps) {
       measure: false,
       operationGenerator: warmupOps,
       createFieldValue,
-      createRecordValue,
       pickField,
-      fieldLength,
-      readAllFields,
-      writeAllFields,
       updateRecordFields,
-      projectRead,
     });
 
     // Benchmark
@@ -238,13 +201,8 @@ async function runBenchmark(config, deps) {
       measure: true,
       operationGenerator: benchOps,
       createFieldValue,
-      createRecordValue,
       pickField,
-      fieldLength,
-      readAllFields,
-      writeAllFields,
       updateRecordFields,
-      projectRead,
     });
 
     const {
